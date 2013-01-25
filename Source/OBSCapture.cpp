@@ -30,7 +30,7 @@ NetworkStream* CreateRTMPPublisher();
 NetworkStream* CreateDelayedPublisher(DWORD delayTime);
 NetworkStream* CreateBandwidthAnalyzer();
 
-void StartBlankSoundPlayback();
+void StartBlankSoundPlayback(CTSTR lpDevice);
 void StopBlankSoundPlayback();
 
 VideoEncoder* CreateNullVideoEncoder();
@@ -231,13 +231,10 @@ void OBS::Start()
     Log(TEXT("Playback device %s"), strPlaybackDevice);
     playbackDevices.FreeData();
 
-    if(!strPlaybackDevice.CompareI(TEXT("Default"))) {
-        desktopAudio = CreateAudioSource(false, strPlaybackDevice);
-    } else {
-        String strDefaultSpeakers;
-        GetDefaultSpeakerID(strDefaultSpeakers);
-        desktopAudio = CreateAudioSource(false, strDefaultSpeakers);
-    }
+    if(strPlaybackDevice.CompareI(TEXT("Default")))
+        GetDefaultSpeakerID(strPlaybackDevice);
+
+    desktopAudio = CreateAudioSource(false, strPlaybackDevice);
 
     if(!desktopAudio) {
         CrashError(TEXT("Cannot initialize desktop audio sound, more info in the log file."));
@@ -337,7 +334,7 @@ void OBS::Start()
     if(bUsing444)
         bUseCFR = false;
     else
-        bUseCFR = AppConfig->GetInt(TEXT("Video Encoding"), TEXT("UseCFR"), 1) != 0;
+        bUseCFR = AppConfig->GetInt(TEXT("Video Encoding"), TEXT("UseCFR"), 0) != 0;
 
     //-------------------------------------------------------------
 
@@ -388,7 +385,7 @@ void OBS::Start()
 
     //-------------------------------------------------------------
 
-    StartBlankSoundPlayback();
+    StartBlankSoundPlayback(strPlaybackDevice);
 
     //-------------------------------------------------------------
 
@@ -403,8 +400,6 @@ void OBS::Start()
             fileStream = CreateFLVFileStream(strOutputFile);
         else if(strFileExtension.CompareI(TEXT("mp4")))
             fileStream = CreateMP4FileStream(strOutputFile);
-        //else if(strFileExtension.CompareI(TEXT("avi")))
-        //    fileStream = CreateAVIFileStream(strOutputFile));
     }
 
     hMainThread = OSCreateThread((XTHREAD)OBS::MainCaptureThread, NULL);

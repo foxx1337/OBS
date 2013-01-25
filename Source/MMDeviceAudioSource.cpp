@@ -103,11 +103,7 @@ bool MMDeviceAudioSource::Initialize(bool bMic, CTSTR lpID)
     }
 
     bIsMic = bMic;
-
-    if(bMic)
-        err = mmEnumerator->GetDevice(lpID, &mmDevice);
-    else
-        err = mmEnumerator->GetDevice(lpID, &mmDevice);
+    err = mmEnumerator->GetDevice(lpID, &mmDevice);
 
     if(FAILED(err))
     {
